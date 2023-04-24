@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_app/blocs/blocs.dart';
 import 'package:maps_app/views/views.dart';
 import 'package:maps_app/widgets/widgets.dart';
@@ -31,17 +32,27 @@ class _MapsScreenState extends State<MapsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<LocationBloc, LocationState>(
-        builder: (context, state) {
-          if (state.lastKnowLocation == null) return const Center(child: Text('Espere por favor...'));
+        builder: (context, locationState) {
+          if (locationState.lastKnowLocation == null) return const Center(child: Text('Espere por favor...'));
 
-          return SingleChildScrollView(
-            child: Stack(
-              children: [
-                MapView(
-                  initialLocation: state.lastKnowLocation!,
-                )
-              ],
-            ),
+          return BlocBuilder<MapBloc, MapState>(
+            builder: (context, mapState) {
+              Map<String, Polyline> polylines = Map.from(mapState.polylines);
+              if (!mapState.showMyRoute) {
+                polylines.removeWhere((key, value) => key == 'myRoute');
+              }
+
+              return SingleChildScrollView(
+                child: Stack(
+                  children: [
+                    MapView(
+                      initialLocation: locationState.lastKnowLocation!,
+                      polylines: polylines.values.toSet(),
+                    )
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
@@ -49,6 +60,8 @@ class _MapsScreenState extends State<MapsScreen> {
       floatingActionButton: const Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          BtnToggleUserRoute(),
+          BtnFollowUserLocation(),
           BtnCurrentLocation(),
         ],
       ),
