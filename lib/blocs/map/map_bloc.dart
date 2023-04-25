@@ -6,6 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_app/blocs/blocs.dart';
+import 'package:maps_app/models/models.dart';
 import 'package:maps_app/themes/themes.dart';
 
 part 'map_event.dart';
@@ -14,6 +15,7 @@ part 'map_state.dart';
 class MapBloc extends Bloc<MapEvent, MapState> {
   final LocationBloc locationBloc;
   GoogleMapController? _mapController;
+  LatLng? mapCenter;
   StreamSubscription<LocationState>? locationStateSubcription;
 
   MapBloc({required this.locationBloc}) : super(const MapState()) {
@@ -22,6 +24,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<OnStopFollowingUserEvent>(_onStopFollowingUser);
     on<UpdateUserPolylineEvent>(_onPolylineNewPoint);
     on<OnToggleUserRoute>((event, emit) => emit(state.copyWith(showMyRoute: !state.showMyRoute)));
+    on<DisplayPolylineEvent>((event, emit) => emit(state.copyWith(polylines: event.polylines)));
 
     locationStateSubcription = locationBloc.stream.listen((locationState) {
       if (locationState.lastKnowLocation != null) {
@@ -49,6 +52,22 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   void _onStopFollowingUser(OnStopFollowingUserEvent event, Emitter<MapState> emit) {
     emit(state.copyWith(isFollowingUser: false));
+  }
+
+  Future drawRoutePolyline(RouteDestination destination) async {
+    final myRoute = Polyline(
+      polylineId: const PolylineId('route'),
+      color: Colors.black,
+      width: 5,
+      points: destination.points,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+    );
+
+    final currentPolylines = Map<String, Polyline>.from(state.polylines);
+    currentPolylines['route'] = myRoute;
+
+    add(DisplayPolylineEvent(currentPolylines));
   }
 
   void moveCamera(LatLng newLocation) {
