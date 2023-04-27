@@ -84,7 +84,7 @@ class SearchDestinationDelegate extends SearchDelegate<SearchResult> {
           return ListTile(
             title: Text(place.text),
             subtitle: Text(place.placeName),
-            leading: const Icon(Icons.place_outlined, color: Colors.black),
+            leading: const Icon(Icons.history, color: Colors.black),
             onTap: () {
               final result = SearchResult(
                 cancel: false,

@@ -21,6 +21,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<RouteDestination> getCoorsStartToEnd(LatLng start, LatLng end) async {
+    final endPlace = await trafficService.getInformationByCoors(end);
+
     final trafficResponse = await trafficService.getCoorsStartToEnd(start, end);
     final geometry = trafficResponse.routes[0].geometry;
     final distance = trafficResponse.routes[0].distance;
@@ -33,6 +35,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       points: latLngList,
       durations: duration,
       distance: distance,
+      endPlace: endPlace,
     );
   }
 
